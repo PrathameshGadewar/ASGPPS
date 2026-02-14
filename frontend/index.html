@@ -1,0 +1,141 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ASGPPS · AI Placement Dashboard</title>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- html2canvas for PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <!-- jsPDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app">
+        <!-- Sidebar (Main Menu) -->
+        <aside class="sidebar">
+            <div class="logo">🎓 ASGPPS AI</div>
+            <nav class="nav">
+                <a href="#" class="active">📊 Dashboard</a>
+                <a href="#">📈 Analytics</a>
+                <a href="#">🧠 Skill Gap</a>
+                <a href="#">🏛️ Exams</a>
+            </nav>
+            <div class="external-resources">
+                <h4>EXTERNAL RESOURCES</h4>
+                <a href="https://www.india.gov.in" target="_blank">🏛️ Gov. Exams</a>
+                <a href="https://leetcode.com" target="_blank">💻 Practice Portals</a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main">
+            <header class="header">
+                <h1>Placement Dashboard</h1>
+                <p class="subtitle">Real-time analysis based on your resume and market data.</p>
+            </header>
+
+            <!-- Input Section -->
+            <div class="input-panel">
+                <input type="number" id="cgpa" placeholder="CGPA" step="0.1" value="8.2">
+                <input type="number" id="skills" placeholder="Skills" value="8">
+                <input type="number" id="experience" placeholder="Experience (yrs)" step="0.1" value="1.5">
+                <button onclick="predict()" id="predictBtn">Predict</button>
+                <button onclick="downloadPDF()" id="downloadBtn">📥 Download Report</button>
+            </div>
+            <div class="upload-panel">
+                <input type="file" id="resumeFile" accept=".pdf,.txt">
+                <button onclick="uploadResume()">📄 Upload Resume</button>
+            </div>
+
+            <!-- Loading Spinner -->
+            <div id="loading" class="spinner" style="display: none;"></div>
+
+            <!-- Top Metrics Cards -->
+            <div class="cards-grid">
+                <div class="metric-card">
+                    <h3>Placement Probability</h3>
+                    <div class="value" id="placementProb">87%</div>
+                    <span class="trend" id="probTrend">↑ 5% from last month</span>
+                </div>
+                <div class="metric-card">
+                    <h3>Estimated Package</h3>
+                    <div class="value" id="estimatedPackage">10.5 LPA</div>
+                    <span class="range" id="packageRange">Range: 9.8 - 12.2 LPA</span>
+                </div>
+                <div class="metric-card">
+                    <h3>Skill Match Score</h3>
+                    <div class="value" id="skillMatch">76/100</div>
+                    <span class="level" id="skillLevel">Level: Intermediate Cluster</span>
+                </div>
+                <div class="metric-card">
+                    <h3>Target Role</h3>
+                    <div class="value" id="targetRole">ML Engineer</div>
+                    <span class="sector" id="targetSector">Sector: Product Based</span>
+                </div>
+            </div>
+
+            <!-- Two column layout for charts & bars -->
+            <div class="row">
+                <!-- Left column: Sector eligibility bars + Salary benchmark -->
+                <div class="col">
+                    <div class="section-title">Sector Eligibility Analysis</div>
+                    <div class="sector-bars" id="sectorBars">
+                        <!-- dynamically populated -->
+                    </div>
+
+                    <div class="section-title">Salary Benchmark (LPA)</div>
+                    <div class="chart-container small">
+                        <canvas id="salaryBenchmarkChart"></canvas>
+                    </div>
+                    <p class="insight" id="salaryInsight">Your profile ranks in the top 15% of applicants.</p>
+                </div>
+
+                <!-- Right column: Radar chart -->
+                <div class="col">
+                    <div class="section-title">Skill Distribution</div>
+                    <div class="chart-container">
+                        <canvas id="radarChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Company Eligibility Cards -->
+            <div class="section-title">Company Eligibility Prediction</div>
+            <div class="company-cards" id="companyCards">
+                <!-- dynamically generated -->
+            </div>
+
+            <!-- Skill Gaps (for ISRO) -->
+            <div class="skill-gaps" id="skillGaps" style="display: none;">
+                <h4>Detected Skill Gaps for ISRO:</h4>
+                <ul id="gapsList"></ul>
+            </div>
+
+            <!-- Personalized AI Roadmap (6 Months) -->
+            <div class="section-title">Personalized AI Roadmap (6 Months)</div>
+            <div class="roadmap" id="roadmap">
+                <!-- dynamic -->
+            </div>
+
+            <!-- Recommended Government Exams -->
+            <div class="section-title">Recommended Government Exams</div>
+            <div class="exam-cards" id="examCards">
+                <!-- dynamic -->
+            </div>
+
+            <!-- Market Projection -->
+            <div class="section-title">AIML Market Projection (2025-2027)</div>
+            <div class="chart-container">
+                <canvas id="marketChart"></canvas>
+            </div>
+            <div class="growth-badge" id="growthBadge">+22% Predicted Annual Growth</div>
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
