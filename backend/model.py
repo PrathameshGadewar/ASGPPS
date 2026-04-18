@@ -1,96 +1,71 @@
 import pandas as pd
+import os
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LinearRegression, LogisticRegression
 from sklearn.cluster import KMeans
 from sklearn.preprocessing import LabelEncoder
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score, r2_score
 
-df = pd.read_csv("placement_dataset_1000.csv")
+class PlacementModel:
+    def __init__(self, data_path: str = "placement_dataset_1000.csv"):
+        self.data_path = data_path
+        self.is_trained = False
+        
+        self.le = LabelEncoder()
+        self.rf = RandomForestClassifier(random_state=42)
+        self.log_reg = LogisticRegression(random_state=42, max_iter=1000)
+        self.reg = LinearRegression()
+        self.kmeans = KMeans(n_clusters=3, random_state=42)
+        
+        self.features = [
+            "cgpa", "number_of_skills", "has_ml",
+            "has_dsa", "has_projects", "experience_years",
+            "certifications_count", "internships",
+            "communication_score", "aptitude_score"
+        ]
+        
+    def train(self):
+        if self.is_trained:
+            return
+            
+        print("Training models... Please wait.")
+        # Ensure path is relative to the file location
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        csv_path = os.path.join(base_dir, self.data_path)
+        
+        df = pd.read_csv(csv_path)
+        
+        # df["company_encoded"] = self.le.fit_transform(df["company_type"])
+        df["company_encoded"] = self.le.fit_transform(df["eligibility_label"])
+        
+        X = df[self.features]
+        y_class = df["company_encoded"]
+        y_salary = df["salary_lpa"]
+        
+        # Fit models
+        self.rf.fit(X, y_class)
+        # self.log_reg.fit(X, (df["company_type"] == "Product").astype(int))
+        self.log_reg.fit(X, (df["eligibility_label"] == "Product").astype(int))
+        self.reg.fit(X, y_salary)
+        self.kmeans.fit(X)
+        
+        self.is_trained = True
+        print("Models explicitly trained successfully.")
 
-le = LabelEncoder()
-df["company_encoded"] = le.fit_transform(df["eligibility_label"])
+    def predict_all(self, data: list) -> dict:
+        if not self.is_trained:
+            self.train()
+            
+        sector = self.rf.predict([data])[0]
+        salary = self.reg.predict([data])[0]
+        product_prob = self.log_reg.predict_proba([data])[0][1]
+        cluster = self.kmeans.predict([data])[0]
 
-features = [
-    "cgpa", "number_of_skills", "has_ml",
-    "has_dsa", "has_projects", "experience_years",
-    "certifications_count", "internships",
-    "communication_score", "aptitude_score"
-]
+        return {
+            "sector": self.le.inverse_transform([sector])[0],
+            "salary": round(float(salary), 2),
+            "product_probability": round(float(product_prob * 100), 2),
+            "cluster": int(cluster)
+        }
 
-X = df[features]
-y_class = df["company_encoded"]
-y_salary = df["salary_lpa"]
-
-# ---------------- TRAIN TEST SPLIT ----------------
-X_train, X_test, y_train, y_test = train_test_split(
-    X, y_class, test_size=0.2, random_state=42
-)
-
-# ---------------- RANDOM FOREST ----------------
-rf = RandomForestClassifier()
-rf.fit(X_train, y_train)
-
-y_pred = rf.predict(X_test)
-print("Random Forest Accuracy:", round(accuracy_score(y_test, y_pred) * 100, 2), "%")
-
-# ---------------- LOGISTIC REGRESSION ----------------
-y_binary = (df["eligibility_label"] == "Product").astype(int)
-
-X_train2, X_test2, y_train2, y_test2 = train_test_split(
-    X, y_binary, test_size=0.2, random_state=42
-)
-
-# log_reg = LogisticRegression(max_iter=1000)
-log_reg = LogisticRegression(max_iter=2000)
-log_reg.fit(X_train2, y_train2)
-
-y_pred_log = log_reg.predict(X_test2)
-print("Logistic Regression Accuracy:", round(accuracy_score(y_test2, y_pred_log) * 100, 2), "%")
-
-# ---------------- SALARY REGRESSION ----------------
-reg = LinearRegression()
-reg.fit(X_train, y_salary.loc[X_train.index])
-
-salary_pred = reg.predict(X_test)
-print("Salary R2 Score:", round(r2_score(y_salary.loc[X_test.index], salary_pred), 2))
-
-# ---------------- KMEANS ----------------
-kmeans = KMeans(n_clusters=3)
-kmeans.fit(X)
-
-# ---------------- PREDICTION FUNCTION ----------------
-# def predict_all(data):
-#     sector = rf.predict([data])[0]
-#     salary = reg.predict([data])[0]
-#     product_prob = log_reg.predict_proba([data])[0][1]
-#     cluster = kmeans.predict([data])[0]
-
-
-# input_df = pd.DataFrame([data], columns=features)
-
-# sector = rf.predict(input_df)[0]
-# salary = reg.predict(input_df)[0]
-# product_prob = log_reg.predict_proba(input_df)[0][1]
-# cluster = kmeans.predict(input_df)[0]
-
-    # return {
-    #     "sector": le.inverse_transform([sector])[0],
-    #     "salary": round(float(salary), 2),
-    #     "product_probability": round(float(product_prob * 100), 2),
-    #     "cluster": int(cluster)
-    # }
-def predict_all(data):
-    input_df = pd.DataFrame([data], columns=features)
-
-    sector = rf.predict(input_df)[0]
-    salary = reg.predict(input_df)[0]
-    product_prob = log_reg.predict_proba(input_df)[0][1]
-    cluster = kmeans.predict(input_df)[0]
-
-    return {
-        "sector": le.inverse_transform([sector])[0],
-        "salary": round(float(salary), 2),
-        "product_probability": round(float(product_prob * 100), 2),
-        "cluster": int(cluster)
-    }
+# Instantiate the global model ready for use
+placement_model = PlacementModel()

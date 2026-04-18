@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  backend:
+    build: ./backend_pro
+    volumes:
+      - ./backend_pro:/app
+    ports:
+      - "8000:8000"
+    environment:
+      - DB_URL=postgresql://user:password@postgres:5432/asgpps
+      - MONGO_URI=mongodb://mongo:27017
+      - JWT_SECRET=supersecret123
+    depends_on:
+      - postgres
+      - mongo
+
+  frontend:
+    build: ./frontend_pro
+    volumes:
+      - ./frontend_pro:/app
+      - /app/node_modules
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
+
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=asgpps
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  mongo:
+    image: mongo:6
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodata:/data/db
+
+volumes:
+  pgdata:
+  mongodata:
