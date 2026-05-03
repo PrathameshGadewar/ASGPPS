@@ -21,7 +21,8 @@ export default function UploadSection({ onUploadSuccess }: { onUploadSuccess: (d
       formData.append("file", file);
 
       // We point to localhost:8000. In production this uses env vars
-      const res = await fetch("http://localhost:8000/api/intelligence/upload-resume", {
+      const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8000";
+      const res = await fetch(`${API_BASE}/api/intelligence/upload-resume`, {
         method: "POST",
         body: formData,
       });
