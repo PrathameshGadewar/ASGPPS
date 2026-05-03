@@ -12,5 +12,5 @@ pandas
 numpy
 spacy
 PyPDF2
-pydantic
+pydantic[email]
 pydantic-settings
