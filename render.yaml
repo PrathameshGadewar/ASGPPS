@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: asgpps-backend
+    env: docker
+    rootDir: backend_pro
+    dockerfilePath: Dockerfile
+    plan: free
+    region: ohio
+    envVars:
+      - key: PORT
+        value: "8000"
